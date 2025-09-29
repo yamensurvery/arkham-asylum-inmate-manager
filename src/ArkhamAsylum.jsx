@@ -12,6 +12,7 @@ function ArkhamAsylum(){
   const [timeLeft, setTimeLeft] = useState(150); // 2.5 minutes in seconds
   const [gameResult, setGameResult] = useState("");
 
+  // Load Inmates on mount (no dependencies)
   useEffect(() => {
     const loadInmates = async () => {
       const inmateList = await buildInmateList();
@@ -24,6 +25,7 @@ function ArkhamAsylum(){
     loadInmates();
   }, []);
 
+  //Timer runs when game is active or when timeleft changes
   useEffect(() => {
     let timer;
     if (gameActive && timeLeft > 0) {
@@ -36,6 +38,7 @@ function ArkhamAsylum(){
     return () => clearInterval(timer);
   }, [gameActive, timeLeft]);
 
+  // When game is active, after 3 seconds, function for escapees is called
   useEffect(() => {
     if (gameActive) {
       const initialEscapeTimer = setTimeout(() => {
@@ -53,6 +56,7 @@ function ArkhamAsylum(){
     }
   }, [gameActive]);
 
+  // Sets inmates statuses to "captured" and resets timer
   function startGame() {
     setInmates(prev => prev.map(inmate => ({
       ...inmate,
@@ -70,6 +74,7 @@ function ArkhamAsylum(){
     }, 5000);
   }
 
+  // Pick 1-4 random inmates and "lets them go". Logs the escapees 
   function triggerRandomEscapes(){
     setInmates(prev => {
       const updatedInmates = [...prev];
@@ -92,6 +97,7 @@ function ArkhamAsylum(){
     });
   }
 
+  // Stops game and counts escapees left
   function endGame() {
     setGameActive(false);
     const escapedCount = inmates.filter(inmate => inmate.status === 'escaped').length;
@@ -102,6 +108,9 @@ function ArkhamAsylum(){
     }
   }
 
+  // Must have 'bad' alignment and must be based in Gotham or Arkham
+  // Some villains like Riddler have nothing as base so I included '-' (what it says if nothing in base)
+  // Bane is based in Santa Prisca
   function filterArkhamInmatesFlexible(searchResults) {
     if (!searchResults || !searchResults.results) {
       return [];
@@ -120,6 +129,8 @@ function ArkhamAsylum(){
     });
   }
 
+  // Fetches character data from backend
+  // Filters using previous "filterArkhamInmatesFlexible" function
   async function buildInmateList() {
     const villainNames = [
       "joker", "riddler", "two-face", "scarecrow", "poison ivy",
@@ -149,6 +160,8 @@ function ArkhamAsylum(){
     return allInmates.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  // Runs when inmate is selected from dropdown
+  // Sets sprite for inmate
   function handleInmateSelection(event) {
     const selectedInmateId = event.target.value;
     
@@ -176,6 +189,7 @@ function ArkhamAsylum(){
     }
   }
 
+  // Changes inmate status to "captured"
   function captureInmate(inmateId) {
     setInmates(prev => prev.map(inmate => 
       inmate.id === inmateId ? { ...inmate, status: 'captured' } : inmate
@@ -184,6 +198,7 @@ function ArkhamAsylum(){
 
   const escapedCount = inmates.filter(inmate => inmate.status === 'escaped').length;
 
+  // Formats time to MM:SS
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
